@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validación de Cédula</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary-bg: #2c3e50;
+      --secondary-bg: #34495e;
+      --accent-color: #15a086;
+      --accent-hover: #2ce8c9;
+      --text-light: #e0f2fe;
+      --text-dark: #0f172a;
+      --card-bg: rgba(26, 36, 51, 0.95);
+      --glow: 0 0 15px rgba(21, 160, 134, 0.7);
+      --border-radius: 16px;
+      --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      --error-color: #e74c3c;
+      --success-color: #2ecc71;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--primary-bg);
+      color: var(--text-light);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .validation-container {
+      width: 95%;
+      max-width: 500px;
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      border: 1px solid rgba(21, 160, 134, 0.3);
+      text-align: center;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .validation-container h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      color: var(--text-light);
+      text-shadow: 0 0 10px rgba(224, 242, 254, 0.3);
+    }
+
+    .validation-container p {
+      color: rgba(224, 242, 254, 0.7);
+      font-size: 0.9rem;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: rgba(224, 242, 254, 0.8);
+      font-weight: 300;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      background-color: rgba(15, 22, 33, 0.5);
+      border: 1px solid rgba(21, 160, 134, 0.3);
+      border-radius: 8px;
+      color: var(--text-light);
+      font-family: 'Roboto', sans-serif;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: var(--glow);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      border: none;
+      margin-top: 10px;
+    }
+
+    .btn-validate {
+      background-color: var(--accent-color);
+      color: var(--text-dark);
+    }
+
+    .btn-validate:hover {
+      background-color: var(--accent-hover);
+      transform: translateY(-3px);
+      box-shadow: var(--glow);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    
+    .cedula-validation {
+      margin-top: 5px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      opacity: 0;
+      transition: var(--transition);
+      justify-content: center;
+    }
+
+    .cedula-validation.show {
+      opacity: 1;
+    }
+
+    .cedula-validation.valid {
+      color: var(--success-color);
+    }
+
+    .cedula-validation.invalid {
+      color: var(--error-color);
+    }
+
+    .cedula-validation i {
+      margin-right: 5px;
+    }
+
+    .result-card {
+      background-color: var(--secondary-bg);
+      border-radius: var(--border-radius);
+      padding: 25px;
+      margin-top: 30px;
+      border: 1px solid rgba(21, 160, 134, 0.2);
+      animation: slideUp 0.6s ease-out forwards;
+      opacity: 0;
+      transform: translateY(20px);
+      position: relative;
+    }
+
+    @keyframes slideUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .result-card h3 {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--accent-hover);
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .result-card p {
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+      color: var(--text-light);
+    }
+
+    .result-card p.valid-message {
+      color: var(--success-color);
+      font-weight: bold;
+    }
+
+    .result-card p.invalid-message {
+      color: var(--error-color);
+      font-weight: bold;
+    }
+    
+    .cedula-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent-hover);
+        text-shadow: 0 0 5px var(--accent-color);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    #downloadBtn, #shareBtn {
+      flex: 1;
+      background-color: transparent;
+      color: var(--accent-color);
+      border: 1px solid var(--accent-color);
+    }
+
+    #downloadBtn:hover, #shareBtn:hover {
+      background-color: rgba(21, 160, 134, 0.1);
+      box-shadow: var(--glow);
+    }
+
+    #shareBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    footer {
+        margin-top: 50px;
+        color: rgba(224, 242, 254, 0.5);
+        font-size: 0.8rem;
+    }
+    
+    /* Overlay de carga */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(15, 22, 33, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      flex-direction: column;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(21, 160, 134, 0.2);
+      border-top-color: var(--accent-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-family: 'Orbitron', sans-serif;
+      color: var(--accent-color);
+      letter-spacing: 2px;
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+
+    /* Alertas personalizadas */
+    .custom-alert {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      max-width: 400px;
+      width: 90%;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      background-color: var(--secondary-bg);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+      transform: translateX(150%);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-left: 5px solid var(--error-color);
+    }
+
+    .custom-alert.show {
+      transform: translateX(0);
+    }
+
+    .custom-alert.success {
+      border-left-color: var(--success-color);
+    }
+
+    .custom-alert.warning {
+      border-left-color: var(--warning-color);
+    }
+
+    .alert-icon {
+      font-size: 24px;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+
+    .error-icon {
+      color: var(--error-color);
+    }
+
+    .success-icon {
+      color: var(--success-color);
+    }
+
+    .warning-icon {
+      color: var(--warning-color);
+    }
+
+    .alert-content {
+      flex-grow: 1;
+    }
+
+    .alert-title {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 500;
+      margin-bottom: 5px;
+      font-size: 1rem;
+    }
+
+    .alert-message {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .close-alert {
+      background: none;
+      border: none;
+      color: rgba(224, 242, 254, 0.7);
+      font-size: 1.2rem;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: color 0.3s;
+    }
+
+    .close-alert:hover {
+      color: var(--text-light);
+    }
+    
+    .btn-group-to-hide {
+        /* Oculta los botones en la imagen */
+        display: none !important;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="validation-container">
+    <h2>VALIDACIÓN DE CÉDULA</h2>
+    <p>Verifique la autenticidad de una cédula dominicana de forma transparente.</p>
+
+    <div class="form-group">
+      <label for="userName">NOMBRE</label>
+      <input type="text" id="userName" class="form-control" placeholder="Ingrese su nombre" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="cedulaInput">CÉDULA DE IDENTIDAD</label>
+      <input type="text" id="cedulaInput" class="form-control" placeholder="Ej: 40225999348" required maxlength="11">
+      <div id="cedulaValidation" class="cedula-validation">
+        <i class="fas fa-check-circle"></i>
+        <span class="validation-message"></span>
+      </div>
+    </div>
+
+    <button id="validateBtn" class="btn btn-validate" disabled>
+      <i class="fas fa-check-circle"></i> VALIDAR CÉDULA
+    </button>
+    
+    <div id="result" class="result-card" style="display: none;">
+      <h3 id="resultTitle"></h3>
+      <p>Validación para: <span id="displayName"></span></p>
+      <p>Número de Cédula: <span id="displayCedula" class="cedula-text"></span></p>
+      <p id="resultMessage"></p>
+      <div class="btn-group" id="btnGroupToHide">
+        <button id="downloadBtn" class="btn">
+          <i class="fas fa-download"></i> DESCARGAR
+        </button>
+        <button id="shareBtn" class="btn">
+          <i class="fas fa-share-alt"></i> COMPARTIR
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    Creado por andreilin graph
+  </footer>
+
+  <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">VALIDANDO CÉDULA</div>
+  </div>
+
+  <div class="custom-alert" id="customAlert">
+    <div class="alert-icon error-icon" id="alertIcon">
+      <i class="fas fa-exclamation-circle"></i>
+    </div>
+    <div class="alert-content">
+      <div class="alert-title" id="alertTitle">Error</div>
+      <div class="alert-message" id="alertMessage">Mensaje de error</div>
+    </div>
+    <button class="close-alert" id="closeAlert">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    // Configuración de Firebase (de tu código original)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDLi-egzQlgbKW8XV_qIhU6313Gd8gocCg",
+      authDomain: "inventario-35d6b.firebaseapp.com",
+      databaseURL: "https://inventario-35d6b-default-rtdb.firebaseio.com",
+      projectId: "inventario-35d6b",
+      storageBucket: "inventario-35d6b.appspot.com",
+      messagingSenderId: "266100399659",
+      appId: "1:266100399659:web:92358d28cbd803c8a7d46e"
+    };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ====================
+    // FUNCIONALIDAD DEL UI
+    // ====================
+
+    // Mostrar alerta personalizada
+    function showAlert(title, message, type = 'error') {
+      const alert = document.getElementById('customAlert');
+      const alertIcon = document.getElementById('alertIcon');
+      const alertTitle = document.getElementById('alertTitle');
+      const alertMessage = document.getElementById('alertMessage');
+      
+      alert.className = `custom-alert ${type}`;
+      alertTitle.textContent = title;
+      alertMessage.textContent = message;
+      
+      alertIcon.innerHTML = type === 'success' 
+        ? '<i class="fas fa-check-circle"></i>' 
+        : type === 'warning' 
+          ? '<i class="fas fa-exclamation-triangle"></i>' 
+          : '<i class="fas fa-exclamation-circle"></i>';
+      
+      alert.classList.add('show');
+      
+      setTimeout(() => {
+        alert.classList.remove('show');
+      }, 5000);
+    }
+
+    document.getElementById('closeAlert').addEventListener('click', () => {
+      document.getElementById('customAlert').classList.remove('show');
+    });
+
+    // Validar cédula (adaptado de tu código)
+    async function validateCedula(cedula) {
+      if (!/^\d{11}$/.test(cedula)) {
+        return { valid: false, message: 'La cédula debe tener 11 dígitos numéricos.' };
+      }
+      
+      try {
+        const response = await fetch(`https://api.digital.gob.do/v3/cedulas/${cedula}/validate`);
+        const data = await response.json();
+        
+        if (data.valid) {
+          return { valid: true, message: 'Cédula válida correctamente. ¡Encontrada en la base de datos oficial!' };
+        } else {
+          return { valid: false, message: 'Cédula inválida o no existe en la base de datos oficial.' };
+        }
+      } catch (error) {
+        console.error('Error al conectar con la API, usando validación local:', error);
+        const luhnValid = validateLuhn(cedula);
+        return {
+          valid: luhnValid,
+          message: luhnValid 
+            ? 'Cédula válida (validación local por el sistema).' 
+            : 'Cédula inválida (validación local por el sistema).'
+        };
+      }
+    }
+
+    // Algoritmo de Luhn (del código original)
+    function validateLuhn(cedula) {
+      if (!/^\d{11}$/.test(cedula)) return false;
+      
+      let sum = 0;
+      for (let i = 0; i < 10; i++) {
+        let digit = parseInt(cedula.charAt(i), 10);
+        if (i % 2 === 0) {
+          digit *= 2;
+          if (digit > 9) digit -= 9;
+        }
+        sum += digit;
+      }
+      
+      const checksum = (sum * 9) % 10;
+      return checksum === parseInt(cedula.charAt(10), 10);
+    }
+
+    // ======================
+    // INICIALIZACIÓN
+    // ======================
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const cedulaInput = document.getElementById('cedulaInput');
+      const userNameInput = document.getElementById('userName');
+      const validateBtn = document.getElementById('validateBtn');
+      const resultDiv = document.getElementById('result');
+      const resultTitle = document.getElementById('resultTitle');
+      const displayName = document.getElementById('displayName');
+      const displayCedula = document.getElementById('displayCedula');
+      const resultMessage = document.getElementById('resultMessage');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const shareBtn = document.getElementById('shareBtn');
+      const validationDiv = document.getElementById('cedulaValidation');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const btnGroupToHide = document.getElementById('btnGroupToHide');
+
+      function checkInputs() {
+        const isCedulaValidLength = cedulaInput.value.trim().length === 11;
+        const isNameFilled = userNameInput.value.trim().length > 0;
+        validateBtn.disabled = !(isCedulaValidLength && isNameFilled);
+      }
+      
+      cedulaInput.addEventListener('input', checkInputs);
+      userNameInput.addEventListener('input', checkInputs);
+
+      validateBtn.addEventListener('click', async () => {
+        const cedula = cedulaInput.value.trim();
+        const userName = userNameInput.value.trim();
+        
+        if (!userName || !cedula || cedula.length !== 11) {
+          showAlert('Campos Incompletos', 'Por favor, ingrese un nombre y una cédula de 11 dígitos.', 'error');
+          return;
+        }
+
+        loadingOverlay.style.display = 'flex';
+
+        const validation = await validateCedula(cedula);
+
+        loadingOverlay.style.display = 'none';
+
+        validationDiv.className = `cedula-validation show ${validation.valid ? 'valid' : 'invalid'}`;
+        validationDiv.querySelector('.validation-message').textContent = validation.message;
+
+        displayName.textContent = userName;
+        displayCedula.textContent = cedula;
+        
+        if (validation.valid) {
+          resultTitle.textContent = "¡Cédula Válida!";
+          resultMessage.textContent = validation.message;
+          resultMessage.classList.remove('invalid-message');
+          resultMessage.classList.add('valid-message');
+        } else {
+          resultTitle.textContent = "¡Cédula Inválida!";
+          resultMessage.textContent = validation.message;
+          resultMessage.classList.remove('valid-message');
+          resultMessage.classList.add('invalid-message');
+        }
+        
+        resultDiv.style.display = 'block';
+      });
+
+      downloadBtn.addEventListener('click', () => {
+        // Oculta los botones temporalmente
+        btnGroupToHide.classList.add('btn-group-to-hide');
+
+        html2canvas(document.getElementById('result'), {
+          scale: 2,
+          backgroundColor: '#34495e',
+          width: document.getElementById('result').offsetWidth,
+          height: document.getElementById('result').offsetHeight,
+        }).then(canvas => {
+          // Vuelve a mostrar los botones
+          btnGroupToHide.classList.remove('btn-group-to-hide');
+          
+          const a = document.createElement('a');
+          a.href = canvas.toDataURL('image/png');
+          a.download = `validacion-${cedulaInput.value.trim()}.png`;
+          a.click();
+        });
+      });
+
+      shareBtn.addEventListener('click', async () => {
+        if (!navigator.share) {
+          showAlert('Función no soportada', 'La función de compartir no es compatible con su navegador o dispositivo.', 'warning');
+          return;
+        }
+
+        loadingOverlay.style.display = 'flex';
+        
+        // Oculta los botones temporalmente
+        btnGroupToHide.classList.add('btn-group-to-hide');
+
+        try {
+          const canvas = await html2canvas(document.getElementById('result'), {
+            scale: 2,
+            backgroundColor: '#34495e',
+            width: document.getElementById('result').offsetWidth,
+            height: document.getElementById('result').offsetHeight,
+          });
+
+          // Vuelve a mostrar los botones
+          btnGroupToHide.classList.remove('btn-group-to-hide');
+
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+          const file = new File([blob], `validacion-${cedulaInput.value.trim()}.png`, { type: 'image/png' });
+
+          await navigator.share({
+            title: 'Validación de Cédula',
+            text: `Validación de cédula para ${userNameInput.value.trim()}.`,
+            files: [file]
+          });
+
+        } catch (error) {
+          console.error('Error al compartir:', error);
+          showAlert('Error al compartir', 'Hubo un problema al intentar compartir la imagen. Por favor, inténtelo de nuevo.', 'error');
+        } finally {
+          loadingOverlay.style.display = 'none';
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
